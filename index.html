@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ride Price Comparator</title>
+
+  <!-- Google Maps -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_API_KEY"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f0f2f5;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: auto;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    #map {
+      width: 100%;
+      height: 250px;
+      margin-top: 20px;
+      border-radius: 10px;
+    }
+
+    .card {
+      background: white;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .best {
+      background: #d4edda;
+      border: 2px solid green;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🚕 Ride Price Comparator</h1>
+
+<div class="container">
+  <input id="pickup" placeholder="Enter Pickup Location">
+  <input id="drop" placeholder="Enter Drop Location">
+
+  <button onclick="compare()">Compare Prices</button>
+
+  <div id="map"></div>
+
+  <div id="results"></div>
+</div>
+
+<script>
+let map;
+let directionsService;
+let directionsRenderer;
+
+// Initialize map
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 28.6139, lng: 77.2090 },
+    zoom: 10,
+  });
+
+  directionsService = new google.maps.DirectionsService();
+  directionsRenderer = new google.maps.DirectionsRenderer();
+  directionsRenderer.setMap(map);
+}
+
+// Compare prices
+function compare() {
+  const pickup = document.getElementById("pickup").value;
+  const drop = document.getElementById("drop").value;
+
+  if (!pickup || !drop) {
+    alert("Please enter both locations");
+    return;
+  }
+
+  document.getElementById("results").innerHTML = "Calculating...";
+
+  directionsService.route(
+    {
+      origin: pickup,
+      destination: drop,
+      travelMode: "DRIVING",
+    },
+    function (result, status) {
+      if (status === "OK") {
+
+        directionsRenderer.setDirections(result);
+
+        const distance = result.routes[0].legs[0].distance.value / 1000;
+
+        const uber = 50 + (12 * distance);
+        const ola = 40 + (11 * distance);
+        const rapido = 30 + (8 * distance);
+
+        const min = Math.min(uber, ola, rapido);
+
+        document.getElementById("results").innerHTML = `
+          <div class="card ${uber===min?'best':''}">Uber: ₹${uber.toFixed(0)}</div>
+          <div class="card ${ola===min?'best':''}">Ola: ₹${ola.toFixed(0)}</div>
+          <div class="card ${rapido===min?'best':''}">Rapido: ₹${rapido.toFixed(0)}</div>
+        `;
+      } else {
+        document.getElementById("results").innerHTML = "Route not found";
+      }
+    }
+  );
+}
+
+// Load map
+window.onload = initMap;
+</script>
+
+</body>
+</html>
